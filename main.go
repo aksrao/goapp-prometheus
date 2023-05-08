@@ -1,6 +1,7 @@
 package main
 
 import (
+	"encoding/json"
 	"fmt"
 	"html"
 	"net/http"
@@ -24,6 +25,16 @@ func init() {
 		{4, "c8:3f:b7:f5:e1:0a", "MacOS"},
 	}
 }
+func getDevices(w http.ResponseWriter, r *http.Request) {
+	b, err := json.Marshal(dvs)
+	if err != nil {
+		http.Error(w, err.Error(), http.StatusBadRequest)
+		return
+	}
+	w.Header().Set("Content-Type", "application/json")
+	w.WriteHeader(http.StatusOK)
+	w.Write(b)
+}
 
 func main() {
 	http.HandleFunc("/", func(w http.ResponseWriter, r *http.Request) {
@@ -33,5 +44,6 @@ func main() {
 		fmt.Fprintf(w, "You are in home page")
 	})
 	http.Handle("/metrics", promhttp.Handler())
+	http.HandleFunc("/devices", getDevices)
 	http.ListenAndServe(":8080", nil)
 }
